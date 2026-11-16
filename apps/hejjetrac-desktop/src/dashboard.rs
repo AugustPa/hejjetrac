@@ -498,9 +498,9 @@ mod tests {
         )?;
         doc.set("sock_port", "0")?;
         doc.set("zmq_port", "0")?;
-        for index in 0..2 {
-            app.sessions[index] = Session::new(index as u64 + 1, doc.clone(), None);
-            app.sessions[index].start()?;
+        for (index, session) in app.sessions[..2].iter_mut().enumerate() {
+            *session = Session::new(index as u64 + 1, doc.clone(), None);
+            session.start()?;
         }
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
         while app.sessions[..2].iter().any(|s| s.snapshot.frames < 3) {
