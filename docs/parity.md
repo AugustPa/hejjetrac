@@ -1,5 +1,17 @@
 # Behavioral parity assessment
 
+## Cropped-sphere atlas sampling — 2026-11-17
+
+The angular ROI now excludes sites outside the complete bilinear source-image
+footprint. Previously their missing-sample placeholders became binary
+observations and could enter fitting and atlas learning. Missing sensor regions
+now remain unknown; physical occluders still require exclusion masks. Cache
+version 2 prevents automatic reuse of maps learned under the earlier policy.
+This corrects input support without changing optimizer budgets, calibration,
+error units or acceptance thresholds. Known-motion and source-support regression
+coverage accompany the fix; real recording replays do not establish physical
+motion ground truth. [Sampling and learning policy](atlas-learning.md).
+
 ## Remote recording and portable startup — 2026-11-07
 
 Explicit LAN control uses the existing native command dispatcher. New recording

@@ -1,0 +1,384 @@
+{
+  "date": "2026-11-17",
+  "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.35",
+  "base_source_commit": "f5207a8e527c713eab93215b0d4ee37cf371f855",
+  "rust_toolchain": "rustc 1.100.0 (0ef1bc386 2026-11-09)",
+  "cause": "Angular sphere ROI sites outside the source-image bilinear footprint were thresholded from neutral placeholders and used as binary observations.",
+  "change": "Reject those sites at sampler construction; retain unknown128 throughout ROI, fitting, temporal support and atlas learning. Atlas cache v2 rejects prior sampling-policy maps.",
+  "input": {
+    "take": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314",
+    "frames": 2089,
+    "width": 320,
+    "height": 240,
+    "video_sha256": "ef15e753568953b7a23f675a16e1cde75f0fcb5bfe5f3ab1dd8f7020abfe1203",
+    "config_sha256": "00ea93a6a94735a33f2755303244e5a7f5759a750600ec1c68532686320190f9",
+    "clock_sha256": "9bf83a3f5d15fb60e7dffa648eea7b1fe67a81ffe9e9a5f0242aa24885d97dbb"
+  },
+  "roi_support": {
+    "before_sites": 2471,
+    "invalid_source_sites": 250,
+    "after_sites": 2221
+  },
+  "fresh_constant_100_fps_replay": {
+    "baseline": {
+      "frames": 2089,
+      "tracked": 1945,
+      "relocalized": 12,
+      "rejected": 131,
+      "initializing": 1,
+      "mean_error": 11937.407955542272,
+      "timing_note": "Run during compilation; not a performance benchmark."
+    },
+    "fixed": {
+      "frames": 2089,
+      "tracked": 2060,
+      "relocalized": 4,
+      "rejected": 24,
+      "initializing": 1,
+      "mean_error": 4965.346832307725,
+      "timing_note": "Run during compilation; not a performance benchmark."
+    }
+  },
+  "known_motion": {
+    "fixture": "80-image cold cropped 320x240 sphere, same centre/radius/FOV as recording; deterministic existing180x90 material",
+    "increments_tracked": 79,
+    "component_rms_rad": [
+      0.0009036787997083531,
+      0.001226868336242497,
+      0.0020678762995465947
+    ],
+    "unchanged_component_gate_rad": 0.008
+  },
+  "negative_control": "With only source sampling guard reverted in isolated core copy, new geometry test fails at source projection [140.904,-14.212]: fabricated0 instead of unknown128.",
+  "limitations": [
+    "Real recording has no independent physical motion ground truth.",
+    "Fresh100fps replay is distinct from the original capture clock and the original live atlas initialized before the take.",
+    "Mean binary-map errors use corrected source support; lower error alone does not establish motion accuracy.",
+    "Physical holders/wires in visible image pixels still require exclusion masks.",
+    "Old manually imported templates are not automatically repaired."
+  ],
+  "fresh_recorded_clock_replay": {
+    "fixed": {
+      "initializing": 1,
+      "tracked": 1884,
+      "rejected": 8,
+      "recovering": 188,
+      "relocalized": 8
+    },
+    "frames": 2089,
+    "clock_preserved": true,
+    "comparison": {
+      "input": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314/epoch-0000-media/raw.avi",
+      "clock": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314/epoch-0000-all-frames.dat",
+      "offline_config": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/offline-config.txt",
+      "timestamps_and_source_indices_identical": true,
+      "scope": "Fresh empty-atlas starts for both builds, using every recorded image and the actual saved source clock. The live recording started from an existing atlas. Status counts do not establish physical-motion ground truth; error scores use different valid ROI support after the fix.",
+      "results": {
+        "before": {
+          "frames": 2089,
+          "status_counts": {
+            "initializing": 1,
+            "recovering": 204,
+            "rejected": 11,
+            "relocalized": 11,
+            "tracked": 1862
+          },
+          "unaccepted": 215,
+          "measured_relative_increments": 1862,
+          "samples_per_frame": 2471,
+          "longest_unaccepted_frame_run": 85,
+          "tracked_error_median": 11190.123531794248,
+          "binary_sha256": "4e9344981e0234299e843858e5000ca54f05c1f27478faac029292ecf4b7801b"
+        },
+        "fixed": {
+          "frames": 2089,
+          "status_counts": {
+            "initializing": 1,
+            "recovering": 188,
+            "rejected": 8,
+            "relocalized": 8,
+            "tracked": 1884
+          },
+          "unaccepted": 196,
+          "measured_relative_increments": 1884,
+          "samples_per_frame": 2221,
+          "longest_unaccepted_frame_run": 72,
+          "tracked_error_median": 3823.1629072003116,
+          "binary_sha256": "dd40dc05b698d962cd7d5d0dfc7fa44992ae2a9d76a9d8d9fa8d07f74d7cd586"
+        }
+      }
+    }
+  },
+  "checks": {
+    "formatting": "passed cargo fmt --all -- --check",
+    "clippy": "passed cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+    "rust_tests": {
+      "unique_passed": 370,
+      "by_crate": {
+        "hejjetrac-camera": 23,
+        "hejjetrac-cli": 8,
+        "hejjetrac-control": 30,
+        "hejjetrac-core": 89,
+        "hejjetrac-desktop": 133,
+        "hejjetrac-io": 87
+      },
+      "method": "Workspace invocation was terminated externally after completed suites. All I/O suites then completed successfully with cargo test -p hejjetrac-io. Updated dashboard test separately passed. Existing network tests ran outside sandbox to permit local sockets."
+    },
+    "native": {
+      "passed": true,
+      "frames": 100,
+      "samples": 2221,
+      "screenshot": "native-smoke/native-atlas-paused-100.png",
+      "clean_shutdown": true,
+      "credential_descriptor_removed": true
+    },
+    "negative_control": "passed: old sampling guard fails new geometry test"
+  },
+  "serial_release_checks": {
+    "demo_oracle": {
+      "expected_delta": [
+        0.006,
+        -0.009,
+        0.004
+      ],
+      "passed": true,
+      "rotation_component_rmse_rad": 0.0003040496948914138,
+      "tolerance_rad": 0.003
+    },
+    "demo_summary": {
+      "version": "0.5.2",
+      "input": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/release-demo/sphere.y4m",
+      "video": {
+        "width": 160,
+        "height": 160,
+        "fps": 60.0,
+        "codec": "y4m/mono",
+        "duration_ms": null
+      },
+      "effective_config": {
+        "spherical_map": null,
+        "width": 160,
+        "height": 160,
+        "vfov_deg": 45.0,
+        "fisheye": false,
+        "sphere": {
+          "centre": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angular_radius": 0.29
+        },
+        "camera_to_lab": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "legacy_roi_coordinates": false,
+        "ignore_polygons": [],
+        "max_rotation": 0.35,
+        "max_error": 0.16,
+        "sample_stride": 2,
+        "iterations": 20,
+        "source": "sphere.y4m"
+      },
+      "frames": 120,
+      "tracked": 119,
+      "relocalized": 0,
+      "rejected": 0,
+      "initializing": 1,
+      "mean_error": 0.016496092142655572,
+      "max_error": 0.01765047398049396,
+      "wall_seconds": 0.510048054,
+      "end_to_end_fps": 235.27194949360597,
+      "tracking_fps": 252.4214442063227,
+      "input_duration_ms": 1983.3333333333333,
+      "final_position": [
+        -1.1854370684376982,
+        -0.39796415863398
+      ],
+      "final_heading": 5.757645264329963,
+      "estimator": "perspective pairwise robust photometric SO(3)",
+      "error_metric": "normalized luma RMSE (0..1)",
+      "warnings": []
+    },
+    "sample_summary": {
+      "version": "0.5.2",
+      "input": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/source/examples/sample.mp4",
+      "video": {
+        "width": 384,
+        "height": 288,
+        "fps": null,
+        "codec": "h264 (pure Rust)",
+        "duration_ms": 10000.0
+      },
+      "effective_config": {
+        "spherical_map": {
+          "resilient": true,
+          "resilient_error_floor": 10000.0,
+          "global_search": false,
+          "max_bad_frames": -1,
+          "global_evaluations": 100000,
+          "channel": null,
+          "quality": 6,
+          "threshold_ratio": 1.25,
+          "threshold_window": 0.25,
+          "max_evaluations": 50,
+          "tolerance": 0.001,
+          "max_error": -1.0
+        },
+        "width": 384,
+        "height": 288,
+        "vfov_deg": 45.0,
+        "fisheye": false,
+        "sphere": {
+          "centre": [
+            -0.22938965658632302,
+            0.09996809470952124,
+            0.9681873607372475
+          ],
+          "angular_radius": 0.12481674439688094
+        },
+        "camera_to_lab": [
+          0.722445,
+          -0.131314,
+          -0.460878
+        ],
+        "legacy_roi_coordinates": true,
+        "ignore_polygons": [
+          [
+            [
+              96.0,
+              156.0
+            ],
+            [
+              113.0,
+              147.0
+            ],
+            [
+              106.0,
+              128.0
+            ],
+            [
+              82.0,
+              130.0
+            ],
+            [
+              81.0,
+              150.0
+            ]
+          ],
+          [
+            [
+              71.0,
+              213.0
+            ],
+            [
+              90.0,
+              219.0
+            ],
+            [
+              114.0,
+              218.0
+            ],
+            [
+              135.0,
+              211.0
+            ],
+            [
+              154.0,
+              196.0
+            ],
+            [
+              150.0,
+              217.0
+            ],
+            [
+              121.0,
+              228.0
+            ],
+            [
+              99.0,
+              234.0
+            ],
+            [
+              75.0,
+              225.0
+            ]
+          ]
+        ],
+        "max_rotation": 0.35,
+        "max_error": 0.16,
+        "sample_stride": 2,
+        "iterations": 20,
+        "source": "sample.mp4"
+      },
+      "frames": 300,
+      "tracked": 299,
+      "relocalized": 0,
+      "rejected": 0,
+      "initializing": 1,
+      "mean_error": 6424.500252392103,
+      "max_error": 8268.539271610356,
+      "wall_seconds": 2.102898338,
+      "end_to_end_fps": 142.6602487523579,
+      "tracking_fps": 280.28256967544405,
+      "input_duration_ms": 9966.666666666666,
+      "final_position": [
+        3.620053461636342,
+        -2.6272963157111424
+      ],
+      "final_heading": 6.177704995564479,
+      "estimator": "accumulated spherical map / pure Rust BOBYQA",
+      "error_metric": "mean squared binary intensity (0..65025)",
+      "warnings": []
+    },
+    "sample_reference_comparison": {
+      "comparison": {
+        "candidate_final_position": [
+          3.620053461636,
+          -2.627296315711
+        ],
+        "endpoint_error_sphere_rad": 0.054525318251027806,
+        "frames": 300,
+        "heading_rmse_rad": 0.01318481079068964,
+        "path_point_rmse_sphere_rad": 0.04480675139755788,
+        "reference_final_position": [
+          3.674266189723,
+          -2.6214661833162
+        ],
+        "rotation_component_rmse_rad": [
+          0.008760804755303081,
+          0.008292135984256042,
+          0.014210731643506284
+        ],
+        "timestamp_max_error_ms": 3.456079866737127e-11
+      },
+      "limits": {
+        "heading_rmse_rad": 0.025,
+        "path_rmse_sphere_rad": 0.075,
+        "rotation_component_rmse_rad": 0.02
+      },
+      "passed": true
+    },
+    "sample_sha256": "afdb193b1555574f9c9eba660eac8eb2531fa9db62e6876afb87fd4fe36753ad",
+    "sample_config_sha256": "57c6cb7ba0fe19657970ac3d5ee76641f78f696c71d7b81bd32a5d08996e42c0",
+    "timing_scope": "Serial fixture cases after compilation and test completion. Existing user live desktop left running; includes decode, tracking, numeric output and finalization. No idle-machine or comparative performance claim."
+  },
+  "installed_binaries": {
+    "hejjetrac": {
+      "sha256": "7270b3bf990416ee7f6e856256300ed70bb59163a8a63cd7b451f61ebf281d0a",
+      "backup_sha256": "72c3e60354fb8d76c77eef5715cf31f15c492b141dcf3e4c8aacfce0905b6f30"
+    },
+    "hejjetrac-cli": {
+      "sha256": "34d0d8de1da69e3388bcec757f4dba5b9c7918d4c3932c441c428e8c7fe2f41d",
+      "backup_sha256": "5e8a64f5ef118495642d65e0a88c561b21f45df865c585ac5889520beadf2ae2"
+    }
+  },
+  "installation": {
+    "running_user_sessions": "left untouched; restart required to use patched binaries",
+    "atlas_cache_version": 2,
+    "backup": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/backup-original",
+    "maximum_glibc_requirement": "2.35"
+  }
+}

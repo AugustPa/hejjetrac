@@ -1,5 +1,43 @@
 # HejjéTrac validation evidence
 
+## Cropped-sphere atlas support — 2026-11-17
+
+The supplied 320×240, 22° recording has a calibrated sphere extending beyond
+the sensor at the top and bottom. The previous angular ROI retained 2,471
+sites, including 250 without a complete bilinear source footprint. Failed
+samples became neutral placeholders that thresholding converted to binary
+observations. The corrected ROI retains only the 2,221 observable sites.
+
+New regression coverage audits unknown ROI pixels and exact learned-atlas
+support for perspective and fisheye projections, including every sensor edge.
+Reverting only the sampling guard in an isolated copy fails that regression:
+an off-camera projection produces black instead of unknown. An 80-image cold
+known-motion cropped sphere tracks all 79 increments, with component RMS
+0.000904 / 0.001227 / 0.002068 rad against the unchanged 0.008-rad gate.
+The cache regression rejects old-policy maps without mutating the tracker.
+
+Two empty-atlas replays of all 2,089 supplied images use identical calibration
+and the original per-frame capture timestamps. Unaccepted images decrease
+from 215 to 196; the longest unaccepted run decreases from 85 to 72 images.
+A separate constant-100-FPS replay decreases unaccepted images from 131 to 24.
+These are distinct replay clocks. The original live take also began with an
+atlas learned before recording and is not a cold-start comparison.
+Lower binary-map errors use corrected valid support and do not establish
+physical-motion accuracy. Holders and wires in visible source pixels still
+need exclusion masks; clipping protection cannot identify arbitrary occluders.
+
+On Linux x86_64 with Rust 1.100.0, all 370 Rust tests pass across the workspace
+suites (the long workspace invocation was terminated externally, then I/O
+suites were completed separately). Formatting and strict all-target Clippy
+pass. An isolated native offline session renders the corrected 2,221-site ROI,
+pauses at image 100 and shuts down cleanly. The serial release demo and complete
+300-image sample pass the unchanged accuracy gates; sample path/heading RMS is
+0.044807 / 0.013185 rad, and component RMS is
+0.008761 / 0.008292 / 0.014211 rad. Existing live sessions remain running during
+these checks, so timings are fixture observations, not isolated-machine or
+cross-platform performance claims.
+[Machine-readable evidence](benchmarks/cropped-sphere-atlas-20261117.json).
+
 ## Remote recording, portable defaults and binding stress — 2026-11-07
 
 The native Linux release passes **20 start/stop cycles on four independent

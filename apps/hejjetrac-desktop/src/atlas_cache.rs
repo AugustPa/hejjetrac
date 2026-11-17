@@ -4,6 +4,10 @@ use hejjetrac_io::ConfigDocument;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
+// Includes numerical sampling policy: version 1 could learn sphere regions
+// outside the camera image, so its maps must not seed corrected tracking.
+const ATLAS_CACHE_VERSION: u32 = 2;
+
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SavedAtlas {
@@ -55,7 +59,17 @@ pub fn load(
     let Some(saved) = crate::state::read::<SavedAtlas>(path, 2_000_000)? else {
         return Ok(false);
     };
-    if saved.version != 1 || saved.identity != identity || saved.config != signature(config)? {
+    if saved.version != ATLAS_CACHE_VERSION {
+        let version = if saved.version < ATLAS_CACHE_VERSION {
+            "an older"
+        } else {
+            "a different"
+        };
+        return Err(format!(
+            "Saved atlas was created by {version} tracking version. Starting with an empty atlas; Refresh atlas replaces the old cache after fresh tracking."
+        ));
+    }
+    if saved.identity != identity || saved.config != signature(config)? {
         return Err("Saved atlas belongs to another source or calibration. Starting with an empty atlas; Refresh atlas replaces the old cache after fresh tracking.".into());
     }
     let template =
@@ -82,7 +96,7 @@ pub fn save(
     crate::state::write(
         path,
         &SavedAtlas {
-            version: 1,
+            version: ATLAS_CACHE_VERSION,
             identity: identity.into(),
             config: signature(config)?,
             width: map.width,
@@ -130,6 +144,19 @@ mod tests {
         let path = directory.join("last.json");
         assert!(save(&path, &original, &config, "same-video", &row)?);
         let bytes = std::fs::read(&path)?;
+        let mut older: SavedAtlas = serde_json::from_slice(&bytes)?;
+        assert_eq!(older.version, ATLAS_CACHE_VERSION);
+        older.version = 1;
+        let older_path = directory.join("older.json");
+        std::fs::write(&older_path, serde_json::to_vec(&older)?)?;
+        let learned = original.sphere_template();
+        let error = load(&older_path, &mut original, &config, "same-video")
+            .err()
+            .ok_or("older atlas was accepted")?;
+        assert!(error.contains("older tracking version"));
+        assert!(error.contains("Starting with an empty atlas"));
+        assert!(error.contains("fresh tracking"));
+        assert_eq!(original.sphere_template(), learned);
         let mut refused = row.clone();
         refused.accepted = false;
         assert!(!save(&path, &original, &config, "same-video", &refused)?);

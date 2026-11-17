@@ -32,6 +32,54 @@ fn index(p: DVec3, width: usize, height: usize) -> usize {
 fn known_template() -> hejjetrac_core::Result<SphereTemplate> {
     known_template_dimensions(180, 90)
 }
+
+#[test]
+fn cropped_sphere_learns_and_tracks_known_motion_from_a_cold_atlas() -> Result {
+    let c = Config {
+        width: 320,
+        height: 240,
+        vfov_deg: 22.0,
+        sphere: hejjetrac_core::Sphere {
+            centre: [
+                0.021766231744497447,
+                0.013513283470233292,
+                0.9996717572911109,
+            ],
+            angular_radius: 0.23955510537951344,
+        },
+        spherical_map: Some(MapSettings::default()),
+        ..Config::default()
+    };
+    let material = known_template()?;
+    let mut tracker = Tracker::new(c.clone())?;
+    let delta = DVec3::new(0.008, -0.011, 0.005);
+    let mut squared = DVec3::ZERO;
+    for i in 0..80 {
+        let row = tracker.process(render_template(
+            &c,
+            &material,
+            DQuat::from_scaled_axis(delta * i as f64),
+            i as f64 * 10.0,
+        )?)?;
+        assert!(
+            row.accepted,
+            "cropped image {i}: {} {}",
+            row.status, row.error
+        );
+        assert_eq!(row.status, if i == 0 { "initializing" } else { "tracked" });
+        if i > 0 {
+            let error = DVec3::from_array(row.delta_camera) - delta;
+            squared += error * error;
+        }
+    }
+    let rms = (squared / 79.0).to_array().map(f64::sqrt);
+    eprintln!("cropped sphere measured=79, component RMS={rms:?}");
+    assert!(
+        rms.iter().all(|value| *value < 0.008),
+        "cropped-sphere component RMS {rms:?}"
+    );
+    Ok(())
+}
 fn known_template_dimensions(w: usize, h: usize) -> hejjetrac_core::Result<SphereTemplate> {
     let mut pixels = Vec::with_capacity(w * h);
     for y in 0..h {

@@ -94,7 +94,16 @@ impl Diagnostics {
                     .project_ray(ray)
                     .map(|p| [p[0] - 0.5, p[1] - 0.5])
                     .unwrap_or([-1.0, -1.0]);
-                let p = if theta < radius * 0.975 && g.usable(xy[0], xy[1]) {
+                // The angular ROI can extend past the sensor when the ball is
+                // cropped. Retain only complete bilinear source footprints,
+                // matching GrayFrame::sample. Otherwise a failed sample's
+                // neutral placeholder would be thresholded into a fabricated
+                // black/white observation and committed to the atlas.
+                let sampleable = xy[0] >= 0.0
+                    && xy[1] >= 0.0
+                    && xy[0] < (config.width - 1) as f64
+                    && xy[1] < (config.height - 1) as f64;
+                let p = if theta < radius * 0.975 && sampleable && g.usable(xy[0], xy[1]) {
                     let c = DVec3::from_array(config.sphere.centre);
                     let dot = ray.dot(c);
                     let r = config.sphere.angular_radius.sin();

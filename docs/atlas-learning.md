@@ -1,5 +1,14 @@
 # Learning a partial atlas and refining later passes
 
+The calibrated angular ROI may extend outside the camera image when a ball is
+cropped. Only sites with a complete bilinear source-image footprint contribute
+to thresholding, fitting, temporal evidence or atlas learning. Off-camera sites
+remain unknown (128), just like excluded sites. Earlier builds retained those
+sites and thresholded their missing-sample placeholders into fabricated black
+or white observations. Atlas cache version 2 starts fresh instead of importing
+maps learned with that policy. This fixes sensor clipping; physical objects
+covering visible pixels still need exclusion polygons.
+
 Resilient spherical tracking (`rust_resilient : y`) can use the previous
 accepted image to retry an uncertain fit before accepted motion history has
 accumulated. The retry retains the configured search window and optimizer
