@@ -22,6 +22,7 @@ pub enum SettingsSection {
 }
 
 pub struct Session {
+    pub(crate) atlas_dialog: crate::atlas_dialog::AtlasDialog,
     pub ui_metrics: crate::ui_metrics::UiMetrics,
     pub source_base: Option<PathBuf>,
     pub running_source: String,
@@ -114,6 +115,7 @@ impl Session {
         let text = doc.text().to_owned();
         let source_edit = doc.get("src_fn").unwrap_or("").to_owned();
         let mut session = Self {
+            atlas_dialog: crate::atlas_dialog::AtlasDialog::default(),
             ui_metrics: crate::ui_metrics::UiMetrics::default(),
             source_base: path.clone(),
             running_source: String::new(),
@@ -1055,6 +1057,7 @@ impl Session {
         self.snapshot = snapshot;
     }
     pub fn update(&mut self) {
+        self.poll_atlas_file();
         if let Some(worker) = &self.worker {
             let snapshot = worker.latest();
             self.observe_worker_snapshot(snapshot);

@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-17",
+  "base_source_commit": "41fe357305be6f15c9c7a4ca032b980170f9ebf0",
+  "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.35",
+  "rust_toolchain": "rustc 1.100.0 (0ef1bc386 2026-11-09)",
+  "issue": "Synchronous unparented atlas filename chooser blocked the render thread and could open behind the app.",
+  "changes": [
+    "Parent atlas chooser to eframe root native window.",
+    "Poll asynchronous chooser without blocking Session update/render.",
+    "One pending operation per rig with source/config/revision guard; discard cancelled/stale results.",
+    "Provide direct PNG filename alternative; retain worker-side lossless save and create-new policy."
+  ],
+  "focused_tests": {
+    "passed": 3,
+    "scope": [
+      "pending future still allows snapshot updates and repeated egui rendering with settings closed",
+      "abandoned/cancelled/stale completion cannot enqueue atlas commands",
+      "real-worker PNG paths equal paused atlas pixels; config/row unchanged and existing-file bytes preserved"
+    ]
+  },
+  "strict_workspace_clippy": "passed",
+  "formatting": "passed",
+  "native": {
+    "passed": true,
+    "source": "isolated two-rig replay of supplied VR2 video",
+    "window_system": "X11",
+    "chooser_title": "Export atlas PNG",
+    "transient_parent": "0x4200004 (isolated test grid)",
+    "window_state": [
+      "MODAL",
+      "SKIP_TASKBAR",
+      "FOCUSED"
+    ],
+    "native_commands_respond_while_pending": true,
+    "explicit_frames_before": 9,
+    "explicit_frames_after": 14,
+    "export_png_size": [
+      180,
+      90
+    ],
+    "export_png_equals_paused_snapshot": true,
+    "export_png_sha256": "18dabf9097b3a13e3de5319b75b98ac64768de2fd45f538d96369cb1eff174c5",
+    "paused_snapshot_sha256": "18dabf9097b3a13e3de5319b75b98ac64768de2fd45f538d96369cb1eff174c5",
+    "clean_shutdown_exit_code": 0,
+    "credential_descriptor_removed": true,
+    "chooser_removed_on_shutdown": true,
+    "live_user_app": "Existing live sessions stayed open; no camera/config/recording operations were issued."
+  },
+  "limitations": [
+    "Native dialog verification is Linux X11 only.",
+    "Independent secondary native viewports use root window parent through the available eframe API.",
+    "rfd internally blocks Wayland parent-handle export; no Wayland/macOS/Windows runtime claim.",
+    "Abandoning selection does not close a separate chooser; UI asks user to close it.",
+    "Other application file choosers are outside this atlas-only fix."
+  ],
+  "workspace_tests": {
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--locked",
+      "--offline",
+      "--",
+      "--test-threads=4"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "passed_tests": 373
+  },
+  "independent_review": "No blocking findings; no tracking/reset/clock mutations.",
+  "path_placeholders": {
+    "$INSTALL": "local application/validation directory",
+    "$TAKE": "supplied VR2 recording directory; private fixture is not bundled"
+  }
+}

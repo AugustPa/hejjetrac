@@ -1,5 +1,32 @@
 # HejjéTrac validation evidence
 
+## Atlas PNG chooser responsiveness — 2026-11-17
+
+The reported freeze was a synchronous filename chooser on the render thread.
+PNG encoding already ran on the tracking worker. Manual atlas import/export
+now polls an asynchronous chooser attached to the native app window. Waiting,
+cancellation and source/configuration changes preserve rendering and do not
+apply stale file selections; a filename entry alternative avoids dependence
+on a reachable desktop chooser.
+
+Three regressions cover a permanently pending future with repeated real egui
+renders and worker snapshot updates, cancellation/stale selection, and actual
+sample-worker exports. Both selected and directly entered PNGs equal the
+paused atlas pixel for pixel; tracking rows/configuration remain unchanged,
+and a repeated export preserves the existing file's bytes.
+
+The native Linux X11 check opens the real export chooser in an isolated
+two-video rig grid. X11 reports its transient parent as that test grid and
+its state as focused/modal. While selection remains pending, native command
+dispatch and screenshots respond, and five explicit images advance from
+source count 9 to 14. Direct filename export produces a 180×90 PNG identical
+to the paused accumulated-map snapshot. The test app exits cleanly, removes
+its MCP descriptor and closes its chooser; existing live rigs stay open.
+Formatting, strict locked workspace/all-target Clippy, and all **373 workspace
+tests** pass with Rust 1.100.0 on Linux. An independent review finds no
+tracking-state or clock changes in the chooser flow.
+[Machine-readable evidence](benchmarks/atlas-png-chooser-20261117.json).
+
 ## Cropped-sphere atlas support — 2026-11-17
 
 The supplied 320×240, 22° recording has a calibrated sphere extending beyond

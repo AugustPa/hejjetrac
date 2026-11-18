@@ -1,6 +1,7 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod array;
 mod atlas_cache;
+mod atlas_dialog;
 mod calibration;
 mod control;
 mod dashboard;
@@ -1074,6 +1075,7 @@ impl eframe::App for Desktop {
             eprintln!("{error}");
         }
         for session in &mut self.sessions {
+            session.atlas_dialog.discard_pending();
             if let Err(error) = session.save_view() {
                 eprintln!("{error}");
             }
@@ -1081,6 +1083,13 @@ impl eframe::App for Desktop {
     }
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let update_started = Instant::now();
+        for session in &mut self.sessions {
+            if session.closed {
+                session.atlas_dialog.discard_pending();
+            } else {
+                session.atlas_dialog.set_parent(frame);
+            }
+        }
         if self.startup_frames < 2 {
             self.startup_frames += 1;
             #[cfg(target_os = "linux")]

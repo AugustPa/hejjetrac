@@ -125,6 +125,13 @@ The advanced PNG import/export section is manual. Standalone PNGs do not carry
 the automatic cache's source identity, numerical configuration or saved pose.
 Import them only with a matching calibration and localization settings.
 
+Expand **Import / export an atlas image** and choose **Export current atlas PNG…**
+to save a new lossless image. The file chooser belongs to the app window;
+tracking and previews continue while it is open. Existing images are never
+overwritten. If the chooser does not appear, **Use filename instead** lets you
+enter the full PNG path. You can also cancel the chooser and select
+**Enter a filename…**. Close any separate chooser when using this alternative.
+
 ## Config text and saved files
 
 **Advanced → View exact configuration text…** opens a read-only view. Explicitly

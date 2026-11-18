@@ -1706,12 +1706,48 @@ impl Session {
         ui.small("The top-left refresh button discards the old atlas and learns a replacement from fresh images.");
         ui.separator();
         egui::CollapsingHeader::new("Import / export an atlas image").show(ui, |ui| {
-            if ui.button("Export current atlas PNG…").clicked()
-                && let Some(path) = rfd::FileDialog::new().add_filter("PNG", &["png"]).save_file()
-            { self.send(Command::SaveMap(path)); }
-            if ui.button("Import atlas PNG…").clicked()
-                && let Some(path) = rfd::FileDialog::new().add_filter("PNG", &["png"]).pick_file()
-            { self.send(Command::LoadMap(path)); }
+            use crate::atlas_dialog::Operation;
+            let pending = self.atlas_dialog.pending();
+            ui.horizontal_wrapped(|ui| {
+                if ui.add_enabled(!pending, egui::Button::new("Export current atlas PNG…")).clicked() {
+                    self.choose_atlas_file(Operation::Export, ui.ctx());
+                }
+                if ui.add_enabled(!pending, egui::Button::new("Import atlas PNG…")).clicked() {
+                    self.choose_atlas_file(Operation::Import, ui.ctx());
+                }
+            });
+            if self.atlas_dialog.pending() {
+                ui.label("Choose a file in the separate file window. Tracking continues.");
+                if ui.button("Use filename instead").clicked() {
+                    self.atlas_dialog.abandon();
+                }
+            } else if !self.atlas_dialog.show_path
+                && ui.small_button("Enter a filename…").clicked()
+            {
+                self.atlas_dialog.suggest_path(self.id);
+                self.atlas_dialog.show_path = true;
+            }
+            if self.atlas_dialog.show_path {
+                ui.label("PNG filename, including folder");
+                ui.add(egui::TextEdit::singleline(&mut self.atlas_dialog.path).desired_width(f32::INFINITY));
+                ui.horizontal_wrapped(|ui| {
+                    if ui.button("Export PNG").clicked() {
+                        let result = self.atlas_file_from_path(Operation::Export);
+                        self.report(result);
+                    }
+                    if ui.button("Import PNG").clicked() {
+                        let result = self.atlas_file_from_path(Operation::Import);
+                        self.report(result);
+                    }
+                    if ui.small_button("Hide filename").clicked() {
+                        self.atlas_dialog.show_path = false;
+                    }
+                });
+                ui.small("Export creates a new file. Existing images are never overwritten.");
+            }
+            if !self.atlas_dialog.notice.is_empty() {
+                ui.label(&self.atlas_dialog.notice);
+            }
             ui.small("Manual images have no saved camera identity or pose. Use them only with their matching calibration and localization settings.");
         });
     }

@@ -1,5 +1,16 @@
 # Behavioral parity assessment
 
+## Atlas PNG chooser responsiveness — 2026-11-17
+
+Manual atlas import/export now uses a parented asynchronous chooser. Waiting
+for a filename no longer blocks rendering or native command dispatch. A direct
+filename alternative remains available if a chooser cannot be reached, and
+selections from a changed source/configuration are discarded. PNG image I/O
+continues on the existing worker with lossless confidence pixels and refusal
+to overwrite existing artifacts. Tracking algorithms and calibration are
+unchanged. Native dialog focus, pending-dialog responsiveness and exact PNG
+pixels were checked on Linux X11; other window systems were not executed.
+
 ## Cropped-sphere atlas sampling — 2026-11-17
 
 The angular ROI now excludes sites outside the complete bilinear source-image

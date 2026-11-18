@@ -6,7 +6,7 @@
   "cause": "Angular sphere ROI sites outside the source-image bilinear footprint were thresholded from neutral placeholders and used as binary observations.",
   "change": "Reject those sites at sampler construction; retain unknown128 throughout ROI, fitting, temporal support and atlas learning. Atlas cache v2 rejects prior sampling-policy maps.",
   "input": {
-    "take": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314",
+    "take": "$TAKE",
     "frames": 2089,
     "width": 320,
     "height": 240,
@@ -68,9 +68,9 @@
     "frames": 2089,
     "clock_preserved": true,
     "comparison": {
-      "input": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314/epoch-0000-media/raw.avi",
-      "clock": "/home/flyvr01/Videos/hejjetrac/VR2/take-1794930504397423314/epoch-0000-all-frames.dat",
-      "offline_config": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/offline-config.txt",
+      "input": "$TAKE/epoch-0000-media/raw.avi",
+      "clock": "$TAKE/epoch-0000-all-frames.dat",
+      "offline_config": "$INSTALL/atlas-fix-20261117/offline-config.txt",
       "timestamps_and_source_indices_identical": true,
       "scope": "Fresh empty-atlas starts for both builds, using every recorded image and the actual saved source clock. The live recording started from an existing atlas. Status counts do not establish physical-motion ground truth; error scores use different valid ROI support after the fix.",
       "results": {
@@ -147,7 +147,7 @@
     },
     "demo_summary": {
       "version": "0.5.2",
-      "input": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/release-demo/sphere.y4m",
+      "input": "$INSTALL/atlas-fix-20261117/release-demo/sphere.y4m",
       "video": {
         "width": 160,
         "height": 160,
@@ -204,7 +204,7 @@
     },
     "sample_summary": {
       "version": "0.5.2",
-      "input": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/source/examples/sample.mp4",
+      "input": "examples/sample.mp4",
       "video": {
         "width": 384,
         "height": 288,
@@ -365,20 +365,8 @@
     "sample_config_sha256": "57c6cb7ba0fe19657970ac3d5ee76641f78f696c71d7b81bd32a5d08996e42c0",
     "timing_scope": "Serial fixture cases after compilation and test completion. Existing user live desktop left running; includes decode, tracking, numeric output and finalization. No idle-machine or comparative performance claim."
   },
-  "installed_binaries": {
-    "hejjetrac": {
-      "sha256": "7270b3bf990416ee7f6e856256300ed70bb59163a8a63cd7b451f61ebf281d0a",
-      "backup_sha256": "72c3e60354fb8d76c77eef5715cf31f15c492b141dcf3e4c8aacfce0905b6f30"
-    },
-    "hejjetrac-cli": {
-      "sha256": "34d0d8de1da69e3388bcec757f4dba5b9c7918d4c3932c441c428e8c7fe2f41d",
-      "backup_sha256": "5e8a64f5ef118495642d65e0a88c561b21f45df865c585ac5889520beadf2ae2"
-    }
-  },
-  "installation": {
-    "running_user_sessions": "left untouched; restart required to use patched binaries",
-    "atlas_cache_version": 2,
-    "backup": "/home/flyvr01/Applications/hejjetrac-linux-x86_64/atlas-fix-20261117/backup-original",
-    "maximum_glibc_requirement": "2.35"
+  "path_placeholders": {
+    "$INSTALL": "local application/validation directory",
+    "$TAKE": "supplied VR2 recording directory; private fixture is not bundled"
   }
 }
