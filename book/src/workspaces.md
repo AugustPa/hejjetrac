@@ -125,12 +125,21 @@ The advanced PNG import/export section is manual. Standalone PNGs do not carry
 the automatic cache's source identity, numerical configuration or saved pose.
 Import them only with a matching calibration and localization settings.
 
-Expand **Import / export an atlas image** and choose **Export current atlas PNG…**
-to save a new lossless image. The file chooser belongs to the app window;
-tracking and previews continue while it is open. Existing images are never
-overwritten. If the chooser does not appear, **Use filename instead** lets you
-enter the full PNG path. You can also cancel the chooser and select
-**Enter a filename…**. Close any separate chooser when using this alternative.
+Choose **Save atlas PNG** to save immediately, with no filename dialog. Portable
+packages keep these images in `atlases/` beside the application. Installed or
+protected copies use your personal `Videos/hejjetrac/atlases` folder (`Movies`
+on macOS). The folder is created on the first valid save, and the actual saved
+path appears in settings.
+
+Filenames follow the label on the rig cube: `VR2.png`, then `VR2-2.png`,
+`VR2-3.png`, and so on. Existing images, including names differing only in case,
+are preserved. Unsupported filename characters in custom rig names are replaced.
+
+Expand **Import / export an atlas image** for **Export elsewhere…** and
+**Import atlas PNG…**. Their file chooser belongs to the app window; tracking
+and previews continue while it is open. If it does not appear, **Use filename
+instead** lets you enter the full PNG path. You can also cancel the chooser and
+select **Enter a filename…**. Close any separate chooser when using this alternative.
 
 ## Config text and saved files
 

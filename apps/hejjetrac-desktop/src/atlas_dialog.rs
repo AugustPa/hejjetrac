@@ -3,14 +3,10 @@ use crate::{runtime::Command, session::Session};
 use eframe::egui;
 use std::{
     future::Future,
-    path::PathBuf,
+    path::{Path, PathBuf},
     pin::Pin,
-    sync::{
-        Arc,
-        atomic::{AtomicU64, Ordering},
-    },
+    sync::{Arc, OnceLock},
     task::{Context, Poll, Wake, Waker},
-    time::{SystemTime, UNIX_EPOCH},
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -81,19 +77,11 @@ impl AtlasDialog {
         self.notice =
             "Stopped waiting here. Close the separate file chooser if it is still open.".into();
     }
-    pub fn suggest_path(&mut self, rig: u64) {
+    pub fn suggest_path(&mut self, path: PathBuf) {
         if !self.path.trim().is_empty() {
             return;
         }
-        static NEXT: AtomicU64 = AtomicU64::new(0);
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_or(0, |elapsed| elapsed.as_millis());
-        let serial = NEXT.fetch_add(1, Ordering::Relaxed);
-        self.path = crate::runtime::recording_root()
-            .join(format!("VR{rig}-atlas-{timestamp}-{serial}.png"))
-            .to_string_lossy()
-            .into_owned();
+        self.path = path.to_string_lossy().into_owned();
     }
     fn poll(&mut self, guard: &SelectionGuard) -> Option<Result<(Operation, PathBuf), String>> {
         let pending = self.pending.as_mut()?;
@@ -135,11 +123,59 @@ impl Wake for Repaint {
 }
 
 impl Session {
+    pub(crate) fn default_atlas_directories(&self) -> Vec<PathBuf> {
+        // Resolve the portable-package location once, rather than consulting
+        // the filesystem during every settings repaint. Protected application
+        // folders are handled by the worker's personal-folder fallback.
+        static DIRECTORIES: OnceLock<Vec<PathBuf>> = OnceLock::new();
+        DIRECTORIES
+            .get_or_init(|| {
+                let personal = crate::runtime::recording_root().join("atlases");
+                let portable = std::env::current_exe()
+                    .ok()
+                    .and_then(|exe| exe.parent().map(Path::to_owned))
+                    .filter(|folder| folder.join("BUILD.json").is_file())
+                    .map(|folder| folder.join("atlases"));
+                let mut directories = Vec::with_capacity(2);
+                if let Some(portable) = portable {
+                    directories.push(portable);
+                }
+                if !directories.contains(&personal) {
+                    directories.push(personal);
+                }
+                directories
+            })
+            .clone()
+    }
+    pub(crate) fn suggest_atlas_path(&mut self) {
+        let directory = self
+            .default_atlas_directories()
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| crate::runtime::recording_root().join("atlases"));
+        self.atlas_dialog.suggest_path(directory.join(format!(
+            "{}.png",
+            hejjetrac_io::atlas_filename_stem(&self.display_name())
+        )));
+    }
+    pub(crate) fn save_default_atlas(&mut self) -> Result<(), String> {
+        let worker = self
+            .worker
+            .as_ref()
+            .ok_or("Start this rig before saving its atlas.")?;
+        worker.send(Command::SaveMapDefault {
+            directories: self.default_atlas_directories(),
+            name: self.display_name(),
+        })?;
+        self.atlas_dialog.discard_pending();
+        self.atlas_dialog.notice = "Atlas PNG save queued.".into();
+        Ok(())
+    }
     pub(crate) fn choose_atlas_file(&mut self, operation: Operation, ctx: &egui::Context) {
         if self.atlas_dialog.pending() {
             return;
         }
-        self.atlas_dialog.suggest_path(self.id);
+        self.suggest_atlas_path();
         let path = PathBuf::from(&self.atlas_dialog.path);
         if self.atlas_dialog.path.contains('\0') {
             self.error = "PNG filenames cannot contain a null character.".into();
@@ -238,8 +274,8 @@ mod tests {
     use crate::runtime::{Snapshot, Worker};
     use hejjetrac_io::ConfigDocument;
     use std::{
-        sync::atomic::AtomicUsize,
-        time::{Duration, Instant},
+        sync::atomic::{AtomicUsize, Ordering},
+        time::{Duration, Instant, SystemTime, UNIX_EPOCH},
     };
     type Result = std::result::Result<(), Box<dyn std::error::Error>>;
 

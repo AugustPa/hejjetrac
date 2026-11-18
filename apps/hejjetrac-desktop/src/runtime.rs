@@ -56,6 +56,8 @@ pub struct ViewFrame {
 }
 #[derive(Clone, Default)]
 pub struct Snapshot {
+    pub atlas_export_path: Option<PathBuf>,
+    pub atlas_export_status: String,
     pub atlas_cache_status: String,
     pub atlas_cache_loaded: bool,
     pub atlas_cache_saved_frame: Option<u64>,
@@ -299,6 +301,10 @@ pub enum Command {
     LoadMap(PathBuf),
     LoadMapAtPose(PathBuf, [f64; 3]),
     SaveMap(PathBuf),
+    SaveMapDefault {
+        directories: Vec<PathBuf>,
+        name: String,
+    },
     Record(PathBuf),
     RecordOptions(
         PathBuf,
@@ -989,9 +995,41 @@ fn run(
                                     .map_err(|e| e.to_string())
                             });
                         snapshot.notice = match result {
-                            Ok(()) => format!("Sphere map saved: {}", path.display()),
+                            Ok(()) => {
+                                snapshot.atlas_export_path = Some(path.clone());
+                                format!("Sphere map saved: {}", path.display())
+                            }
                             Err(e) => e,
                         };
+                        snapshot.atlas_export_status =
+                            if snapshot.notice.starts_with("Sphere map saved: ") {
+                                snapshot.notice.clone()
+                            } else {
+                                format!("Atlas export failed: {}", snapshot.notice)
+                            };
+                    }
+                    Command::SaveMapDefault { directories, name } => {
+                        let result = engine_state
+                            .as_ref()
+                            .and_then(|engine| engine.tracker.sphere_template())
+                            .ok_or("No spherical map available".into())
+                            .and_then(|map| {
+                                hejjetrac_io::save_sphere_map_unique(&directories, &name, &map)
+                                    .map_err(|error| error.to_string())
+                            });
+                        snapshot.notice = match result {
+                            Ok(path) => {
+                                snapshot.atlas_export_path = Some(path.clone());
+                                format!("Sphere map saved: {}", path.display())
+                            }
+                            Err(error) => error,
+                        };
+                        snapshot.atlas_export_status =
+                            if snapshot.notice.starts_with("Sphere map saved: ") {
+                                snapshot.notice.clone()
+                            } else {
+                                format!("Atlas export failed: {}", snapshot.notice)
+                            };
                     }
                     Command::CameraRefresh => {
                         snapshot.notice = match &mut input {

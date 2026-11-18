@@ -1,5 +1,29 @@
 # HejjéTrac validation evidence
 
+## Default atlas folder and rig filenames — 2026-11-17
+
+The new default atlas save uses the rig's displayed label and a shared atlas
+folder, without a chooser. Existing lowercase `vr2.png` is preserved when the
+label is `VR2`; later files receive `-2`, `-3` and subsequent suffixes. Four
+I/O regressions cover those collisions, exact image pixels, concurrent writers,
+safe filename components, protected/unavailable-folder fallback and rejection
+of invalid maps before filesystem writes. Native worker coverage deliberately
+uses session 1 with label `VR7`, proving filenames follow the cube label rather
+than the transient session number. It also verifies unchanged numeric rows,
+configuration and paused clock, plus clear error status and retention of the
+last successful path after a failed save.
+
+An isolated Linux X11 portable copy renders the new button/folder/status.
+Native `map_save_default` saves `VR11.png` and `VR23-2.png`/`VR23-3.png` into
+that copy's `atlases/`, preserving an existing `vr23.png`. Both VR23 images
+match its paused 180×90 atlas snapshot exactly, and the complete row remains
+unchanged at source count 377. The chooser-free save is verified through the
+typed operation; automated pointer activation was inconclusive in this session,
+including on the unrelated manager close button. No user atlas files changed.
+Formatting, strict workspace/all-target Clippy and all **379 workspace tests**
+pass on Linux with Rust 1.100.0.
+[Machine-readable evidence](benchmarks/atlas-defaults-20261117.json).
+
 ## Atlas PNG chooser responsiveness — 2026-11-17
 
 The reported freeze was a synchronous filename chooser on the render thread.

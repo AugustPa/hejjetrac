@@ -1705,11 +1705,36 @@ impl Session {
         });
         ui.small("The top-left refresh button discards the old atlas and learns a replacement from fresh images.");
         ui.separator();
+        if ui
+            .add_enabled(
+                self.worker.is_some() && !self.atlas_dialog.pending(),
+                egui::Button::new("Save atlas PNG"),
+            )
+            .clicked()
+        {
+            let result = self.save_default_atlas();
+            self.report(result);
+        }
+        ui.small("Uses this rig's name. Repeated saves add a number.");
+        if let Some(folder) = self.default_atlas_directories().first() {
+            let text = format!("Atlas folder: {}", folder.display());
+            ui.add(egui::Label::new(egui::RichText::new(&text).small()).truncate())
+                .on_hover_text(text);
+        }
+        if !self.snapshot.atlas_export_status.is_empty() {
+            let text = &self.snapshot.atlas_export_status;
+            ui.add(egui::Label::new(egui::RichText::new(text).small()).truncate())
+                .on_hover_text(text);
+        } else if let Some(path) = &self.snapshot.atlas_export_path {
+            let text = format!("Last saved: {}", path.display());
+            ui.add(egui::Label::new(egui::RichText::new(&text).small()).truncate())
+                .on_hover_text(text);
+        }
         egui::CollapsingHeader::new("Import / export an atlas image").show(ui, |ui| {
             use crate::atlas_dialog::Operation;
             let pending = self.atlas_dialog.pending();
             ui.horizontal_wrapped(|ui| {
-                if ui.add_enabled(!pending, egui::Button::new("Export current atlas PNG…")).clicked() {
+                if ui.add_enabled(!pending, egui::Button::new("Export elsewhere…")).clicked() {
                     self.choose_atlas_file(Operation::Export, ui.ctx());
                 }
                 if ui.add_enabled(!pending, egui::Button::new("Import atlas PNG…")).clicked() {
@@ -1724,7 +1749,7 @@ impl Session {
             } else if !self.atlas_dialog.show_path
                 && ui.small_button("Enter a filename…").clicked()
             {
-                self.atlas_dialog.suggest_path(self.id);
+                self.suggest_atlas_path();
                 self.atlas_dialog.show_path = true;
             }
             if self.atlas_dialog.show_path {

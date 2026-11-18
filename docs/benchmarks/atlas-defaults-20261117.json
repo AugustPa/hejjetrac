@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-17",
+  "source_base_commit": "41fe357305be6f15c9c7a4ca032b980170f9ebf0",
+  "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.35",
+  "rust_toolchain": "1.100.0",
+  "feature": "Default atlas PNG folder and filenames from visible rig labels",
+  "folder_policy": "Portable BUILD.json marker: atlases beside executable, then personal recording-root/atlases if protected. Other installs use personal folder. Folder creation/allocation happens on worker.",
+  "naming": "display_name sanitized to portable component; base.png then base-2.png etc; existing case variants skipped; atomic create_new preserves existing artifacts.",
+  "checks": {
+    "workspace": {
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline",
+        "--",
+        "--test-threads=4"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "passed_tests": 379
+    },
+    "strict_workspace_all_target_clippy": "passed",
+    "formatting": "passed",
+    "independent_review": "no blockers",
+    "focused_io_tests": 4,
+    "native_worker_test": "session1 labelVR7 exportsVR7.png andVR7-2.png with identicalpixels; unchanged row/config/pausedclock; failure retains lastgoodpath and publishes error",
+    "schema_and_headless_native_only_checks": "passed"
+  },
+  "native": {
+    "window_system": "X11",
+    "isolated_app": "$INSTALL/atlas-defaults-20261117/native-app/hejjetrac",
+    "default_folder": "$INSTALL/atlas-defaults-20261117/native-app/atlases",
+    "rig_labels": [
+      "VR11",
+      "VR23"
+    ],
+    "transient_session_ids": [
+      1,
+      2
+    ],
+    "saved_files": [
+      "VR11.png",
+      "VR23-2.png",
+      "VR23-3.png"
+    ],
+    "existing_lowercase_fixture": "vr23.png preserved byte-for-byte",
+    "vr23_dimensions": [
+      180,
+      90
+    ],
+    "vr23_pngs_equal_paused_snapshot": true,
+    "frames_before": 377,
+    "frames_after": 377,
+    "row_revision_config_unchanged": true,
+    "save_flow_verified_through": "native typed map_save_default; rendered SaveatlasPNG button/folder/status visually inspected",
+    "automated_pointer_activation": "inconclusive, including unrelated manager close control; no pointer-success claim",
+    "clean_shutdown_exit_code": 0,
+    "credential_descriptor_removed": true,
+    "local_screenshots": [
+      "native-check/initial.png",
+      "native-check/default-names-saved.png"
+    ],
+    "local_artifacts_note": "These paths describe local validation outputs; images are not bundled with this report."
+  },
+  "limitations": [
+    "Native runtime validation is Linux X11 only.",
+    "Different rig labels that sanitize to same stem share its suffix sequence.",
+    "Manual PNGs retain existing no-camera-identity/no-pose semantics."
+  ],
+  "path_placeholders": {
+    "$INSTALL": "local application/validation directory",
+    "$TAKE": "supplied VR2 recording directory; private fixture is not bundled"
+  }
+}

@@ -57,6 +57,7 @@ const COMMANDS: &[&str] = &[
     "rig_focus",
     "rig_grid",
     "map_save",
+    "map_save_default",
     "snapshot",
 ];
 enum Input {
@@ -457,6 +458,8 @@ fn status(s: &mut Session) -> Value {
         "HejjéTrac · Rig grid".into()
     });
     state["atlas_cache"] = json!({"loaded":s.snapshot.atlas_cache_loaded,"saved_frame":s.snapshot.atlas_cache_saved_frame,"status":s.snapshot.atlas_cache_status,"path":s.atlas_cache_path()});
+    state["atlas_export_path"] = json!(s.snapshot.atlas_export_path);
+    state["atlas_export_status"] = json!(s.snapshot.atlas_export_status);
     state["preview_canvas_rect"] = json!(s.preview_canvas_rect);
     state["preview_image_rect"] = json!(s.preview_image_rect);
     state["camera_devices"] = json!(
@@ -774,6 +777,19 @@ pub(crate) fn execute_session(s: &mut Session, command: &str, a: &Value) -> Resu
                 return Err("sphere-map output must be new".into());
             }
             send(s, Command::SaveMap(path))
+        }
+        "map_save_default" => {
+            let directories = if let Some(directory) = a.get("directory") {
+                let directory = directory
+                    .as_str()
+                    .filter(|path| !path.trim().is_empty() && !path.contains('\0'))
+                    .ok_or("args.directory must be a nonempty path without null characters")?;
+                vec![PathBuf::from(directory)]
+            } else {
+                s.default_atlas_directories()
+            };
+            let name = s.display_name();
+            send(s, Command::SaveMapDefault { directories, name })
         }
         "view" => {
             if a.get("settings").and_then(Value::as_bool) == Some(false)
@@ -1413,6 +1429,105 @@ mod tests {
         execute_session(&mut s, "close", &json!({}))?;
         assert!(s.closed);
         fs::remove_dir_all(dir)?;
+        Ok(())
+    }
+    #[test]
+    fn default_atlas_export_command_uses_cube_name_and_reports_unique_worker_outputs() -> TestResult
+    {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut doc = ConfigDocument::parse(fs::read_to_string(
+            root.join("examples/upstream-config.txt"),
+        )?)?;
+        doc.set(
+            "src_fn",
+            &root.join("examples/sample.mp4").to_string_lossy(),
+        )?;
+        doc.set("rust_instance_name", "VR7")?;
+        doc.set("zmq_port", "0")?;
+        doc.set("sock_port", "0")?;
+        let mut session = Session::new(1, doc, None);
+        session.realtime = false;
+        session.start()?;
+        session.send(Command::Pause(true));
+        session.send(Command::Advance(3));
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
+        loop {
+            session.update();
+            if session.snapshot.frames >= 3
+                && session.snapshot.paused
+                && session.snapshot.advance_remaining == 0
+            {
+                break;
+            }
+            if std::time::Instant::now() > deadline {
+                return Err("sample worker did not pause before default export".into());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        let before = serde_json::to_value(session.snapshot.row.as_ref())?;
+        let config = session.history.text.clone();
+        let directory = temp()?;
+        for filename in ["VR7.png", "VR7-2.png"] {
+            let expected = directory.join(filename);
+            let args = json!({"directory":directory});
+            hejjetrac_control::validate_request_arguments("map_save_default", &args)?;
+            let queued = execute_session(&mut session, "map_save_default", &args)?;
+            assert_eq!(queued["queued"], true);
+            loop {
+                session.update();
+                if session.snapshot.atlas_export_path.as_ref() == Some(&expected) {
+                    break;
+                }
+                if std::time::Instant::now() > deadline {
+                    return Err(format!(
+                        "default atlas output not reported: {}",
+                        session.snapshot.notice
+                    )
+                    .into());
+                }
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            let state = status(&mut session);
+            assert_eq!(state["atlas_export_path"], json!(expected));
+            assert!(
+                state["atlas_export_status"]
+                    .as_str()
+                    .is_some_and(|notice| notice.contains(filename))
+            );
+        }
+        let first = hejjetrac_io::load_sphere_map(&directory.join("VR7.png"))?;
+        let second = hejjetrac_io::load_sphere_map(&directory.join("VR7-2.png"))?;
+        assert_eq!(first, second);
+        assert_eq!(session.history.text, config);
+        assert_eq!(serde_json::to_value(session.snapshot.row.as_ref())?, before);
+        assert!(session.snapshot.paused);
+        // A failed folder must produce fresh error feedback while retaining
+        // the most recent successfully saved path.
+        let blocked = directory.join("blocked");
+        fs::write(&blocked, b"not a directory")?;
+        execute_session(
+            &mut session,
+            "map_save_default",
+            &json!({"directory":blocked}),
+        )?;
+        loop {
+            session.update();
+            if session.snapshot.atlas_export_status.contains("failed") {
+                break;
+            }
+            if std::time::Instant::now() > deadline {
+                return Err("failed atlas export did not report new status".into());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert_eq!(
+            session.snapshot.atlas_export_path,
+            Some(directory.join("VR7-2.png"))
+        );
+        assert_eq!(serde_json::to_value(session.snapshot.row.as_ref())?, before);
+        assert_eq!(session.history.text, config);
+        session.worker = None;
+        fs::remove_dir_all(directory)?;
         Ok(())
     }
     #[test]

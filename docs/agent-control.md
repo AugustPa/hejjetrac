@@ -77,6 +77,14 @@ Output paths must be new. Requests are bounded to 1 MB, rows to one million per 
 
 ## Automatic desktop MCP
 
+Native `map_save_default` saves the current atlas using the rig's displayed
+name in its default atlas folder. It accepts an optional `directory` override;
+omit it for the same behavior as **Save atlas PNG**. Existing names receive
+numbered suffixes. Poll `status.atlas_export_path` and `atlas_export_status`
+for completion or failure; a queued reply is not a completed export. This
+convenience operation is native-only. The existing explicit `map_save(path)`
+operation remains available to both native and headless clients.
+
 Every graphical launch starts an in-process **Streamable HTTP MCP** endpoint for
 that running desktop, including normal app-launcher, config-file, array and
 `--control-stdio` launches. It uses protocol `2025-11-25` and also negotiates

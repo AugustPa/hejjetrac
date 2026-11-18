@@ -414,6 +414,7 @@ impl Controller {
                 | "array_reset"
                 | "workspace_export"
                 | "workspace_load"
+                | "map_save_default"
         ) {
             return Err(format!(
                 "{} requires a native desktop session; this headless controller processes recorded video and has no live camera or rendered view",

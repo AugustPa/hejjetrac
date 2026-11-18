@@ -650,6 +650,7 @@ fn native_only_controls_are_typed_and_not_advertised_for_headless_sessions() -> 
                 | "camera_status"
                 | "camera_set"
                 | "camera_format"
+                | "map_save_default"
         )
     )));
     let mut c = Controller::new();
@@ -657,6 +658,7 @@ fn native_only_controls_are_typed_and_not_advertised_for_headless_sessions() -> 
         ("view", json!({"settings":false})),
         ("camera_list", json!({})),
         ("start_array", json!({})),
+        ("map_save_default", json!({})),
         ("camera_status", json!({})),
         (
             "camera_set",

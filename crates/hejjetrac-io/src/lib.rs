@@ -37,7 +37,9 @@ mod templates;
 pub use debug_render::{CalibratedDebugRenderer, render_calibrated_debug_rgb, render_debug_rgb};
 pub use recording::{RecordingCodec, VideoRecorder};
 pub use sinks::{OutputSinks, OutputStatus};
-pub use templates::{load_sphere_map, save_sphere_map};
+pub use templates::{
+    atlas_filename_stem, load_sphere_map, save_sphere_map, save_sphere_map_unique,
+};
 pub use zmq_output::{DEFAULT_ZMQ_HOST, DEFAULT_ZMQ_PORT, ZmqOutputStatus};
 pub use zmq_payload::{DEFAULT_ZMQ_TOPIC, ZmqFraming, ZmqOutputMode, ZmqPayloadSettings};
 

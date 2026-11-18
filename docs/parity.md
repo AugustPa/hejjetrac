@@ -1,5 +1,16 @@
 # Behavioral parity assessment
 
+## Default atlas folder and rig filenames — 2026-11-17
+
+**Save atlas PNG** queues a lossless image directly into the app's atlas folder,
+using the same displayed name as the rig cube. Existing names receive a numeric
+suffix, including preexisting case variants. The worker creates directories
+and reserves new filenames atomically; protected portable locations fall back
+to a personal Hejjetrac atlas folder. Explicit path saves and startup caches
+retain their existing semantics. Native `map_save_default` exposes the same
+default-save operation and reports its actual path/status. Tracking, calibration
+and clock behavior are unchanged.
+
 ## Atlas PNG chooser responsiveness — 2026-11-17
 
 Manual atlas import/export now uses a parented asynchronous chooser. Waiting

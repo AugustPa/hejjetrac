@@ -114,6 +114,13 @@ pub fn request_schema() -> Value {
             object(json!({"path":path()}), &["path"]),
         ));
     }
+    variants.push(descriptor(
+        "map_save_default",
+        object(
+            json!({"directory":{"type":"string","minLength":1,"description":"Optional atlas folder, reused or created. A new PNG is named from the rig label with a numeric suffix when needed; omit for the app's default atlas folder."}}),
+            &[],
+        ),
+    ));
     variants.push(descriptor("map_load", object(json!({"path":path(),"pose_camera":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}}}), &["path"])));
     variants.push(descriptor("map_refresh", none()));
     variants.push(descriptor(
@@ -192,6 +199,7 @@ pub(crate) fn validate_arguments(command: &str, args: &Value) -> super::Result<(
         "replace_config" => &["text"],
         "source" => &["input"],
         "save_config" | "map_save" => &["path"],
+        "map_save_default" => &["directory"],
         "map_load" => &["path", "pose_camera"],
         "arrange_grid" => &["columns", "rows"],
         "workspace_save" => &["restore_on_launch"],
@@ -271,6 +279,15 @@ pub(crate) fn validate_arguments(command: &str, args: &Value) -> super::Result<(
             .is_some_and(|v| v.as_str().is_none_or(str::is_empty))
     {
         return Err("args.directory must be a nonempty path".into());
+    }
+    if command == "map_save_default"
+        && object.get("directory").is_some_and(|value| {
+            value
+                .as_str()
+                .is_none_or(|directory| directory.trim().is_empty() || directory.contains('\0'))
+        })
+    {
+        return Err("args.directory must be a nonempty path without null characters".into());
     }
     if command == "arrange_grid" {
         for key in ["columns", "rows"] {
@@ -477,6 +494,7 @@ pub fn headless_request_schema() -> Value {
                         | "camera_status"
                         | "camera_set"
                         | "camera_format"
+                        | "map_save_default"
                 )
             )
         });
@@ -487,6 +505,36 @@ pub fn headless_request_schema() -> Value {
 #[cfg(test)]
 mod tuning_tests {
     use super::*;
+    #[test]
+    fn default_atlas_export_has_optional_typed_directory_and_is_native_only() {
+        assert!(validate_arguments("map_save_default", &json!({})).is_ok());
+        assert!(
+            validate_arguments("map_save_default", &json!({"directory":"/tmp/atlases"})).is_ok()
+        );
+        for args in [
+            json!({"directory":""}),
+            json!({"directory":"  "}),
+            json!({"directory":"bad\u{0000}path"}),
+            json!({"directory":5}),
+            json!({"path":"VR2.png"}),
+        ] {
+            assert!(validate_arguments("map_save_default", &args).is_err());
+        }
+        assert!(request_schema()["oneOf"].as_array().is_some_and(|items| {
+            items
+                .iter()
+                .any(|item| item["properties"]["command"]["const"] == "map_save_default")
+        }));
+        assert!(
+            !headless_request_schema()["oneOf"]
+                .as_array()
+                .is_some_and(|items| {
+                    items
+                        .iter()
+                        .any(|item| item["properties"]["command"]["const"] == "map_save_default")
+                })
+        );
+    }
     #[test]
     fn array_controls_are_typed_and_native_only() {
         for invalid in [
